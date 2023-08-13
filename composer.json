@@ -1,5 +1,9 @@
 {
     "require": {
-        "react/http": "^1.9"
+        "react/http": "^1.9",
+        "react/child-process": "^0.6.5"
+    },
+    "autoload": {
+        "psr-0": { "": "src/" }
     }
 }

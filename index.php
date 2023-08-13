@@ -1,19 +1,17 @@
 <?php
 require 'vendor/autoload.php';
 use React\Http\Server;
-use React\Http\Message\Response;
 use Psr\Http\Message\ServerRequestInterface;
 $loop = React\EventLoop\Factory::create();
+$router = new Router($loop);
+$router->load(__DIR__ . '/routes.php');
 $server = new Server(
     $loop,
-    function (ServerRequestInterface $request) {
-        return new Response(
-            200,
-            ['Content-Type' => 'text/plain; charset=UTF-8'],
-            'Привет, мир'
-        );
+    function (ServerRequestInterface $request) use ($router) {
+        return $router($request);
     }
 );
+
 $socket = new React\Socket\Server("0.0.0.0:80", $loop);
 $server->listen($socket);
 echo 'Работает на '

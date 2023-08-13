@@ -48,7 +48,7 @@ RUN docker-php-ext-install mbstring exif pcntl bcmath gd ctype
 RUN pecl install decimal && docker-php-ext-enable decimal
 
 # Установка Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.5.8 /usr/bin/composer /usr/bin/composer
 
 # Установка рабочего каталога в контейнере
 WORKDIR /var/www
