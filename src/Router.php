@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 use Psr\Http\Message\ServerRequestInterface;
 use React\EventLoop\LoopInterface;
 use React\Http\Message\Response;
@@ -20,10 +22,13 @@ class Router
 
     public function __invoke(ServerRequestInterface $request)
     {
-        $path = $request->getUri()->getPath();
-        echo "Запрос: $path\n";
-        $handler = $this->routes[$path] ?? $this->notFound($path);
-        return $handler($request, $this->loop);
+        $path = trim($request->getUri()->getPath());
+        foreach ($this->routes as $pattern => $handler) {
+            if (preg_match("~$pattern~", $path)) {
+                return $handler($request, $this->loop);
+            }
+        }
+        return $this->notFound($path);
     }
 
     public function load($filename)

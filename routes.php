@@ -1,47 +1,32 @@
 <?php
 
+use App\Controller\Download;
+use App\Controller\Index;
 use React\ChildProcess\Process;
 use React\EventLoop\LoopInterface;
 use React\Http\Message\Response;
 use Psr\Http\Message\ServerRequestInterface;
 
+$childProcessFactory = new \App\ChildProcessFactory(__DIR__);
+
 return [
-    '/' => function (
+    '/download/uploads/.*\.(jpg|png)$' => new Download($childProcessFactory),
+    '/list' => function (
         ServerRequestInterface $request, LoopInterface $loop
     ) {
-        $childProcess = new Process('cat pages/index.html', __DIR__);
-        $childProcess->start($loop);
-
+        $listFiles = new Process('ls uploads', __DIR__);
+        $listFiles->start($loop);
+        $renderPage = new Process('php pages/list.php', __DIR__);
+        $renderPage->start($loop);
+        $listFiles->stdout->pipe($renderPage->stdin);
         return new Response(
             200,
             ['Content-Type' => 'text/html; charset=UTF-8'],
-            $childProcess->stdout
+            $renderPage->stdout
         );
     },
-    '/upload' => function (
-        ServerRequestInterface $request, LoopInterface $loop
-    ) {
-        /** @var \Psr\Http\Message\UploadedFileInterface $file */
-        $file = $request->getUploadedFiles()['file'];
-        $process = new Process(
-            "cat > uploads/{$file->getClientFilename()}", __DIR__
-        );
-        $loop->addPeriodicTimer(
-            1,
-            function () use ($process) {
-                echo 'Дочерний процесс ';
-                echo $process->isRunning()
-                    ? 'выполняется'
-                    : 'остановлен';
-                echo PHP_EOL;
-            });
-        $process->start($loop);
-        $process->stdin->write($file->getStream()->getContents());
-        $process->stdin->end();
-        return new Response(
-            200,
-            ['Content-Type' => 'text/plain'],
-            'Загрузка завершена'
-        );
-    }
+    '/uploads/.*\.(jpg|png)$' => new \App\Controller\Preview(),
+    '/' => new Index($childProcessFactory),
+    '/upload' => new \App\Controller\Upload(),
+
 ];

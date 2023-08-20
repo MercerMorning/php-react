@@ -2,6 +2,8 @@
 require 'vendor/autoload.php';
 use React\Http\Server;
 use Psr\Http\Message\ServerRequestInterface;
+use App\Router;
+
 $loop = React\EventLoop\Factory::create();
 $router = new Router($loop);
 $router->load(__DIR__ . '/routes.php');
